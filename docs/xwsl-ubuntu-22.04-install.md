@@ -115,3 +115,51 @@ Uninstall YourDistroName.cmd
 - **RDP codec**: H.264 codec is enabled for better performance.
 - **File locations**: The distro is installed under the folder you selected when running `xWSL.cmd`.
 
+---
+
+### Advanced customization
+
+- Install additional packages after setup (inside the distro):
+  ```bash
+  sudo apt-get update
+  sudo apt-get install -y build-essential git curl
+  ```
+
+- Install from Windows using `wsl.exe` (non-interactive):
+  ```powershell
+  wsl -d YourDistroName -u root -- bash -lc "apt-get update && apt-get install -y htop"
+  ```
+
+- Persist package installs by extending `xWSL.cmd` during provisioning:
+  - In `xWSL.cmd`, locate the line that installs Xfce/xRDP (search for `Xfce desktop environment`). Immediately after it, add another invocation that installs your packages within the target distro using the `%GO%` helper. Example:
+    ```cmd
+    %GO% "DEBIAN_FRONTEND=noninteractive apt-fast -qqy install build-essential git curl --no-install-recommends"
+    ```
+  - This ensures packages are present in the golden image before the first login.
+
+- Run a one-time post-install script on first boot:
+  - Place your script under `/tmp/xWSL/custom.sh` in this repo and make it executable during provisioning:
+    ```cmd
+    %GO% "chmod +x /tmp/xWSL/custom.sh && /tmp/xWSL/custom.sh"
+    ```
+  - Example `custom.sh` contents:
+    ```bash
+    #!/usr/bin/env bash
+    set -euo pipefail
+    apt-get update
+    apt-get install -y vim jq
+    ```
+
+- Switch APT mirror for speed:
+  ```bash
+  sudo sed -i 's|archive.ubuntu.com|mirror.example.com|g' /etc/apt/sources.list
+  sudo apt-get update
+  ```
+
+- Manage services within the xWSL session:
+  - Start/stop xRDP from the init menu (runlevel prompt) or directly:
+    ```bash
+    sudo service xrdp restart
+    ```
+  - The provided `initwsl` wrapper starts runlevel services suitable for WSL.
+
