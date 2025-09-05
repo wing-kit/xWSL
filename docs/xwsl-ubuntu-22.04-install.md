@@ -156,6 +156,18 @@ If the generated uninstaller is unavailable, remove xWSL manually from an elevat
     - For a fixed window size, set `screen mode id:i:1` and add `desktopwidth:i:<width>` and `desktopheight:i:<height>` (e.g., `1920` and `1080`).
     - For fullscreen, keep `screen mode id:i:2`. Optionally add `smart sizing:i:1` for dynamic resizing, and set `use multimon:i:1` to span multiple monitors.
   - DPI/scaling (inside Xfce session): open Settings Manager → Appearance → Fonts, enable "Custom DPI" and choose a value (e.g., 96=100%, 120=125%, 144=150%). You can also adjust Settings → Display → Scale. Log out and back in to apply everywhere.
+- **Chrome fails to start with crashpad errors**:
+  - On WSL1, current Chrome/Firefox often crash due to sandbox/GPU limits. Use the included Seamonkey/Falkon, or switch to WSL2 for better compatibility.
+  - Workaround (less secure): run Chrome with sandbox and GPU disabled:
+    ```bash
+    google-chrome --no-sandbox --disable-dev-shm-usage --disable-gpu --no-zygote
+    ```
+  - Optional wrapper to make it persistent:
+    ```bash
+    mkdir -p ~/.local/bin
+    printf '%s\n' '#!/usr/bin/env bash' 'exec /usr/bin/google-chrome --no-sandbox --disable-dev-shm-usage --disable-gpu --no-zygote "$@"' > ~/.local/bin/google-chrome
+    chmod +x ~/.local/bin/google-chrome
+    ```
 
 ---
 
