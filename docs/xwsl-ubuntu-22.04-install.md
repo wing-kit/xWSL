@@ -174,6 +174,17 @@ If the generated uninstaller is unavailable, remove xWSL manually from an elevat
     wsl -d YourDistroName -u root -- bash -lc "rm -f /tmp/apt-fast.lock /tmp/apt-fast.list"
     ```
 
+- **Resume the previous step after an abort/hang**:
+  - Steps are logged under `logs\*.log`. Identify the last completed step, then re-run the next step manually.
+  - Generic method: copy the line for that step from `xWSL.cmd` (it starts with `%GO% "..."`). Remove the leading `%GO% ` and run the inner command inside the distro:
+    ```powershell
+    wsl -d YourDistroName -u root -- bash -lc "<inner commands from that step>"
+    ```
+  - Example (resume “Setup apt-fast and clone repo”):
+    ```powershell
+    wsl -d YourDistroName -u root -- bash -lc "rm -rf /etc/apt/apt.conf.d/20snapd.conf /etc/systemd/system/snap* /var/cache/snapd /etc/rc2.d/S01whoopsie /etc/init.d/console-setup.sh ; echo 'echo 1' > /usr/sbin/runlevel ; cd /tmp ; if [ ! -d /tmp/xWSL ]; then git clone -b master --depth=1 https://github.com/DesktopECHO/xWSL.git /tmp/xWSL ; fi ; dpkg -i /tmp/xWSL/deb/aria2_*.deb /tmp/xWSL/deb/libaria2-0_*.deb /tmp/xWSL/deb/libc-ares2_*.deb /tmp/xWSL/deb/libssh2-1_*.deb ; install -m 755 /tmp/xWSL/dist/usr/local/bin/apt-fast /usr/local/bin ; install -m 644 /tmp/xWSL/dist/etc/dpkg/dpkg.cfg.d/01_nodoc /etc/dpkg/dpkg.cfg.d ; apt-get update ; apt-get -qqy install systemd > /dev/null 2>&1 ; cd /bin && mv -f systemd-sysusers{,.org} && ln -s echo systemd-sysusers ; apt-get -fy install > /dev/null 2>&1"
+    ```
+
 ---
 
 ### Advanced customization
