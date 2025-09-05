@@ -107,6 +107,43 @@ Uninstall YourDistroName.cmd
 
 ---
 
+### 9) Manual uninstall (advanced)
+
+If the generated uninstaller is unavailable, remove xWSL manually from an elevated PowerShell or Command Prompt:
+
+- Stop and unregister the distro:
+  ```cmd
+  wsl --shutdown
+  wslconfig /t YourDistroName
+  wsl --unregister YourDistroName
+  ```
+
+- Optionally, unregister via LxRunOffline (if present):
+  ```cmd
+  "%APPDATA%\LxRunOffline.exe" ur -n YourDistroName
+  ```
+
+- Remove the scheduled task:
+  ```cmd
+  schtasks /delete /tn YourDistroName /f
+  ```
+
+- Remove firewall rules added by the installer:
+  ```cmd
+  netsh advfirewall firewall del rule name="YourDistroName xRDP"
+  netsh advfirewall firewall del rule name="YourDistroName Secure Shell"
+  netsh advfirewall firewall del rule name="YourDistroName Avahi Multicast DNS"
+  ```
+
+- Delete the installation folder (replace the path with your actual install root):
+  ```cmd
+  rd /s /q "C:\WSL Distros\YourDistroName"
+  ```
+
+- Remove desktop shortcuts (optional): delete `YourDistroName (YourUser) Desktop.rdp` and `YourDistroName (YourUser) Console.cmd` from your Windows Desktop.
+
+---
+
 ### FAQ / Tips
 
 - **Ubuntu version prompt**: enter `2` for Ubuntu 22.04 (Jammy). Enter `4` for 24.04 (Noble).
