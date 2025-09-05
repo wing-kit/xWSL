@@ -174,6 +174,34 @@ If the generated uninstaller is unavailable, remove xWSL manually from an elevat
     wsl -d YourDistroName -u root -- bash -lc "rm -f /tmp/apt-fast.lock /tmp/apt-fast.list"
     ```
 
+- **Errors like: missing `/etc/ssh/sshd_config`, `/etc/avahi/avahi-daemon.conf`, or `xrdp` user**:
+  - Example messages:
+    ```
+    sed: can't read /etc/ssh/sshd_config: No such file or directory
+    sed: can't read /etc/avahi/avahi-daemon.conf: No such file or directory
+    adduser: The user `xrdp' does not exist.
+    chown: invalid user: ‘xrdp:root’
+    ```
+  - Cause: Package installation steps earlier in the script did not complete, so the config files and the `xrdp` system user were never created.
+  - Quick fix from Windows PowerShell (run as admin) — install missing packages inside the distro:
+    ```powershell
+    wsl -d YourDistroName -u root -- bash -lc "set -e; apt-get update; apt-get install -y openssh-server avahi-daemon xrdp xorgxrdp"
+    ```
+  - If the `xrdp` user still doesn't exist after install, create and add it to the `ssl-cert` group:
+    ```powershell
+    wsl -d YourDistroName -u root -- bash -lc "id -u xrdp >/dev/null 2>&1 || adduser --system --home /var/run/xrdp --group xrdp; adduser xrdp ssl-cert"
+    ```
+  - Re-run the config edits (substitute your chosen SSH port and distro name):
+    ```powershell
+    # Replace 3322 with your SSH port; replace YourDistroName accordingly
+    wsl -d YourDistroName -u root -- bash -lc "sed -i 's/#Port 22/Port 3322/g' /etc/ssh/sshd_config; sed -i 's/PasswordAuthentication no/PasswordAuthentication yes/g' /etc/ssh/sshd_config; sed -i 's/#enable-dbus=yes/enable-dbus=no/g' /etc/avahi/avahi-daemon.conf; sed -i 's/#host-name=foo/host-name=YourDistroName/g' /etc/avahi/avahi-daemon.conf; sed -i 's/use-ipv4=yes/use-ipv4=no/g' /etc/avahi/avahi-daemon.conf"
+    ```
+  - Restart services inside the distro:
+    ```powershell
+    wsl -d YourDistroName -u root -- bash -lc "service ssh restart || true; service avahi-daemon restart || true; service xrdp restart || true"
+    ```
+  - Alternative: Use the "Resume the previous step" guidance below to re-run the full "Prerequisite components" and "Xfce desktop environment" steps from `xWSL.cmd`.
+
 - **Resume the previous step after an abort/hang**:
   - Steps are logged under `logs\*.log`. Identify the last completed step, then re-run the next step manually.
   - Generic method: copy the line for that step from `xWSL.cmd` (it starts with `%GO% "..."`). Remove the leading `%GO% ` and run the inner command inside the distro:
