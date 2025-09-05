@@ -151,6 +151,11 @@ If the generated uninstaller is unavailable, remove xWSL manually from an elevat
 - **Browser support on WSL1**: Seamonkey and Falkon are included. Chrome/Firefox may be limited on WSL1.
 - **RDP codec**: H.264 codec is enabled for better performance.
 - **File locations**: The distro is installed under the folder you selected when running `xWSL.cmd`.
+- **Change resolution or DPI**:
+  - Resolution (Windows RDP client): edit the generated `.rdp` file on your Windows Desktop (named like `YourDistro (YourUser) Desktop.rdp`).
+    - For a fixed window size, set `screen mode id:i:1` and add `desktopwidth:i:<width>` and `desktopheight:i:<height>` (e.g., `1920` and `1080`).
+    - For fullscreen, keep `screen mode id:i:2`. Optionally add `smart sizing:i:1` for dynamic resizing, and set `use multimon:i:1` to span multiple monitors.
+  - DPI/scaling (inside Xfce session): open Settings Manager → Appearance → Fonts, enable "Custom DPI" and choose a value (e.g., 96=100%, 120=125%, 144=150%). You can also adjust Settings → Display → Scale. Log out and back in to apply everywhere.
 
 ---
 
