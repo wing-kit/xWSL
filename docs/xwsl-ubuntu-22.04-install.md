@@ -152,6 +152,28 @@ If the generated uninstaller is unavailable, remove xWSL manually from an elevat
 - **RDP codec**: H.264 codec is enabled for better performance.
 - **File locations**: The distro is installed under the folder you selected when running `xWSL.cmd`.
 
+- **“Setup apt-fast and clone repo” takes more than 30 minutes**:
+  - Open the step log under the installer folder: `logs\<time> Setup apt-fast and clone repo.log` and look for timeouts or DNS errors.
+  - Verify connectivity from Windows PowerShell (run as admin):
+    ```powershell
+    Test-NetConnection github.com -Port 443
+    iwr https://archive.ubuntu.com -UseBasicParsing -TimeoutSec 10 | Out-Null
+    ```
+  - Behind a corporate proxy? Set these before running the installer, then open a new PowerShell:
+    ```powershell
+    setx HTTPS_PROXY http://user:pass@proxy-host:port
+    setx HTTP_PROXY  http://user:pass@proxy-host:port
+    ```
+  - Try a faster APT mirror (see “Switch APT mirror for speed” below) and re-run.
+  - Fall back to plain apt-get during provisioning by replacing `apt-fast` with `apt-get` in `xWSL.cmd` for that step, or run this to continue inside the distro:
+    ```cmd
+    %GO% "apt-get update && apt-get -y dist-upgrade"
+    ```
+  - If you see "apt-fast already running"/lock errors after aborting, clear the lock then retry:
+    ```powershell
+    wsl -d YourDistroName -u root -- bash -lc "rm -f /tmp/apt-fast.lock /tmp/apt-fast.list"
+    ```
+
 ---
 
 ### Advanced customization
