@@ -1,5 +1,24 @@
 # [xWSL.cmd (Version 20240425)](https://github.com/DesktopECHO/xWSL)
 
+English | [繁體中文 README](README.zh-TW.md)
+
+## Why xWSL is necessary and great for development
+
+- **One-command, reproducible Linux GUI dev workstation on Windows**: Provision Ubuntu 22.04/24.04 with XFCE and xRDP in minutes using a single command, consistent across machines and teammates.
+- **Full Linux desktop without heavy VMs**: Enjoy a rich Linux GUI over RDP on top of WSL1/WSL2 with lower overhead and fast startup compared to traditional virtual machines.
+- **Remote-friendly by design**: H.264 RDP codec and audio enable smooth remote desktop sessions locally or over the network; accessible via `mstsc.exe` or Chrome Remote Desktop.
+- **Pragmatic defaults for productivity**: Pre-configured packages, media, themes, fonts, and sensible WSL-centric environment settings get you productive faster.
+- **Works in constrained environments**: Compatible with Windows Server 2019, Windows 10 1809+, and Hyper‑V Core—useful where the Microsoft Store or Hyper‑V GUIs are restricted.
+- **Team-ready and customizable**: Fork the repo, change a few variables, and own your provisioning script for organization-specific images and policies.
+- **Service-like operation**: Optional scheduled task startup at boot with clean login semantics; easy start/stop via built-in commands.
+- **Network discoverability**: Multicast DNS helps you find WSL2 instances easily across your LAN.
+
+### Who is this for?
+
+- **Windows developers** who need a reliable Linux desktop for toolchains and GUI apps.
+- **DevOps/SRE** who want a fast, disposable, and reproducible environment for debugging.
+- **Teams** standardizing a consistent workstation setup with minimal friction.
+
 Script to internet-deploy **Ubuntu 22.04** or **24.04**, **Xfce 4.18** and enable **xRDP** packages on WSL1 or WSL2   
 Other distributions are available - See **KDE Neon** [**(kWSL)**](https://github.com/DesktopECHO/kWSL) and **Kali Linux** [**(Kali-xRDP)**](https://github.com/DesktopECHO/Kali-xRDP) for details.
 
