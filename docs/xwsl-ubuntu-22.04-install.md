@@ -169,6 +169,67 @@ If the generated uninstaller is unavailable, remove xWSL manually from an elevat
     chmod +x ~/.local/bin/google-chrome
     ```
 
+- **“Setup apt-fast and clone repo” takes more than 30 minutes**:
+  - Open the step log under the installer folder: `logs\<time> Setup apt-fast and clone repo.log` and look for timeouts or DNS errors.
+  - Verify connectivity from Windows PowerShell (run as admin):
+    ```powershell
+    Test-NetConnection github.com -Port 443
+    iwr https://archive.ubuntu.com -UseBasicParsing -TimeoutSec 10 | Out-Null
+    ```
+  - Behind a corporate proxy? Set these before running the installer, then open a new PowerShell:
+    ```powershell
+    setx HTTPS_PROXY http://user:pass@proxy-host:port
+    setx HTTP_PROXY  http://user:pass@proxy-host:port
+    ```
+  - Try a faster APT mirror (see “Switch APT mirror for speed” below) and re-run.
+  - Fall back to plain apt-get during provisioning by replacing `apt-fast` with `apt-get` in `xWSL.cmd` for that step, or run this to continue inside the distro:
+    ```cmd
+    %GO% "apt-get update && apt-get -y dist-upgrade"
+    ```
+  - If you see "apt-fast already running"/lock errors after aborting, clear the lock then retry:
+    ```powershell
+    wsl -d YourDistroName -u root -- bash -lc "rm -f /tmp/apt-fast.lock /tmp/apt-fast.list"
+    ```
+
+- **Errors like: missing `/etc/ssh/sshd_config`, `/etc/avahi/avahi-daemon.conf`, or `xrdp` user**:
+  - Example messages:
+    ```
+    sed: can't read /etc/ssh/sshd_config: No such file or directory
+    sed: can't read /etc/avahi/avahi-daemon.conf: No such file or directory
+    adduser: The user `xrdp' does not exist.
+    chown: invalid user: ‘xrdp:root’
+    ```
+  - Cause: Package installation steps earlier in the script did not complete, so the config files and the `xrdp` system user were never created.
+  - Quick fix from Windows PowerShell (run as admin) — install missing packages inside the distro:
+    ```powershell
+    wsl -d YourDistroName -u root -- bash -lc "set -e; apt-get update; apt-get install -y openssh-server avahi-daemon xrdp xorgxrdp"
+    ```
+  - If the `xrdp` user still doesn't exist after install, create and add it to the `ssl-cert` group:
+    ```powershell
+    wsl -d YourDistroName -u root -- bash -lc "id -u xrdp >/dev/null 2>&1 || adduser --system --home /var/run/xrdp --group xrdp; adduser xrdp ssl-cert"
+    ```
+  - Re-run the config edits (substitute your chosen SSH port and distro name):
+    ```powershell
+    # Replace 3322 with your SSH port; replace YourDistroName accordingly
+    wsl -d YourDistroName -u root -- bash -lc "sed -i 's/#Port 22/Port 3322/g' /etc/ssh/sshd_config; sed -i 's/PasswordAuthentication no/PasswordAuthentication yes/g' /etc/ssh/sshd_config; sed -i 's/#enable-dbus=yes/enable-dbus=no/g' /etc/avahi/avahi-daemon.conf; sed -i 's/#host-name=foo/host-name=YourDistroName/g' /etc/avahi/avahi-daemon.conf; sed -i 's/use-ipv4=yes/use-ipv4=no/g' /etc/avahi/avahi-daemon.conf"
+    ```
+  - Restart services inside the distro:
+    ```powershell
+    wsl -d YourDistroName -u root -- bash -lc "service ssh restart || true; service avahi-daemon restart || true; service xrdp restart || true"
+    ```
+  - Alternative: Use the "Resume the previous step" guidance below to re-run the full "Prerequisite components" and "Xfce desktop environment" steps from `xWSL.cmd`.
+
+- **Resume the previous step after an abort/hang**:
+  - Steps are logged under `logs\*.log`. Identify the last completed step, then re-run the next step manually.
+  - Generic method: copy the line for that step from `xWSL.cmd` (it starts with `%GO% "..."`). Remove the leading `%GO% ` and run the inner command inside the distro:
+    ```powershell
+    wsl -d YourDistroName -u root -- bash -lc "<inner commands from that step>"
+    ```
+  - Example (resume “Setup apt-fast and clone repo”):
+    ```powershell
+    wsl -d YourDistroName -u root -- bash -lc "rm -rf /etc/apt/apt.conf.d/20snapd.conf /etc/systemd/system/snap* /var/cache/snapd /etc/rc2.d/S01whoopsie /etc/init.d/console-setup.sh ; echo 'echo 1' > /usr/sbin/runlevel ; cd /tmp ; if [ ! -d /tmp/xWSL ]; then git clone -b master --depth=1 https://github.com/DesktopECHO/xWSL.git /tmp/xWSL ; fi ; dpkg -i /tmp/xWSL/deb/aria2_*.deb /tmp/xWSL/deb/libaria2-0_*.deb /tmp/xWSL/deb/libc-ares2_*.deb /tmp/xWSL/deb/libssh2-1_*.deb ; install -m 755 /tmp/xWSL/dist/usr/local/bin/apt-fast /usr/local/bin ; install -m 644 /tmp/xWSL/dist/etc/dpkg/dpkg.cfg.d/01_nodoc /etc/dpkg/dpkg.cfg.d ; apt-get update ; apt-get -qqy install systemd > /dev/null 2>&1 ; cd /bin && mv -f systemd-sysusers{,.org} && ln -s echo systemd-sysusers ; apt-get -fy install > /dev/null 2>&1"
+    ```
+
 ---
 
 ### Advanced customization
